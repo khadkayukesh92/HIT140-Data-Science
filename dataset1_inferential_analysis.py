@@ -57,6 +57,7 @@ dataset1['start_time'] = pd.to_datetime(dataset1['start_time'], errors='coerce',
 dataset1['rat_period_start'] = pd.to_datetime(dataset1['rat_period_start'], errors='coerce', dayfirst=True)
 dataset1['rat_period_end'] = pd.to_datetime(dataset1['rat_period_end'], errors='coerce', dayfirst=True)
 dataset1['sunset_time'] = pd.to_datetime(dataset1['sunset_time'], errors='coerce', dayfirst=True)
+dataset2['time'] = pd.to_datetime(dataset2['time'], errors='coerce', dayfirst=True)
 
 dataset1['habit'] = dataset1['habit'].astype('category')
 dataset1['season'] = dataset1['season'].astype('category')
@@ -238,3 +239,24 @@ y_pred = pipe.predict(X_test)
 print("\nAccuracy:", accuracy_score(y_test, y_pred))
 print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
 print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+# ================================
+# Step 8: Dataset 2 Exploratory Analysis
+# ================================
+
+# 1. Group by month: sum bat landings and rat arrivals
+dataset2_grouped = dataset2.groupby('month')[['bat_landing_number', 'rat_arrival_number']].sum().reset_index()
+fig = plt.figure(figsize=(10,6))
+bar_width = 0.35
+x = range(len(dataset2_grouped))
+plt.bar([i - bar_width/2 for i in x], dataset2_grouped['bat_landing_number'], 
+        width=bar_width, label='Bat Landings', color='skyblue')
+plt.bar([i + bar_width/2 for i in x], dataset2_grouped['rat_arrival_number'], 
+        width=bar_width, label='Rat Arrivals', color='orange')
+plt.xticks(x, dataset2_grouped['month'])
+plt.xlabel('Month')
+plt.ylabel('Count')
+plt.title('Monthly Comparison of Bat Landings and Rat Arrivals')
+plt.legend()
+plt.tight_layout()
+save_plot(fig, "rat_bat_group_by_month.png")
