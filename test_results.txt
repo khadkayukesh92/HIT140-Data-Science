@@ -1,0 +1,37 @@
+=== H1: Reward Rate (Risk-taking vs Avoidance) ===
+Risk-takers success proportion (p1): 0.218
+Risk-avoiders success proportion (p0): 0.843
+z = -18.8504 p-value (one-sided, p1<p0) = 0.0
+95% CI for (p1 - p0): (np.float64(-0.6752), np.float64(-0.5738))
+Interpretation: If CI < 0 and p < 0.05 → risk-taking has lower success, consistent with rats imposing costs.
+
+=== H2: Bat Landing Rate (Risk-taking vs Avoidance) ===
+t-statistic: 5.0964658799597675
+one-tailed p-value: 2.1918227190738176e-07
+Mean time avoiders (risk=0): 7.124468673360263
+Mean time risk-takers (risk=1): 16.39377690842762
+
+====================
+T-TEST ANALYSIS - DATASET 2
+====================
+
+T-test 1: Bat landings in high vs low food availability periods
+High food availability - Mean bat landings: 31.82 (SD: 22.84, n: 1061)
+Low food availability - Mean bat landings: 32.35 (SD: 28.13, n: 1062)
+t-statistic: -0.4820
+p-value: 0.6299
+Significant difference: No
+
+T-test 2: Bat landings in early vs late hours after sunset
+Early hours - Mean bat landings: 35.23 (SD: 25.64, n: 1069)
+Late hours - Mean bat landings: 28.90 (SD: 25.21, n: 1054)
+t-statistic: -5.7354
+p-value: 0.0000
+Significant difference: Yes
+
+T-test 3: Food availability when rats are present vs absent
+Rats present - Mean food availability: 2.30 (SD: 1.08, n: 545)
+Rats absent - Mean food availability: 2.50 (SD: 1.26, n: 1578)
+t-statistic: -3.5366
+p-value: 0.0004
+Significant difference: Yes

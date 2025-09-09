@@ -7,20 +7,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import os
+from scipy import stats
 from scipy.stats import (
-    chi2_contingency,
     ttest_ind_from_stats,
     ttest_ind,
-    pearsonr,
-    spearmanr,
 )
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-from datetime import datetime
 
 # Set style for better plots
 plt.style.use("seaborn-v0_8")
@@ -88,12 +79,18 @@ dataset1["month"] = dataset1["month"].astype("category")
 # Step 4: Dataset 1 Exploratory Analysis
 # ================================
 
-
 # Helper function to save plot
 def save_plot(fig, filename):
     fig.savefig(os.path.join("plots", filename), bbox_inches="tight", dpi=300)
     plt.close(fig)  # Close the figure to prevent display in notebooks or scripts
 
+print("\n" + "=" * 50)
+print("DATASET 1 COMPREHENSIVE ANALYSIS")
+print("=" * 50)
+
+# Basic statistics for Dataset 1
+print("\nDataset 1 Descriptive Statistics:")
+print(dataset1.describe())
 
 # 1. Distribution of Bat Risk-Taking Behaviour
 fig = plt.figure(figsize=(8, 6))
@@ -161,63 +158,6 @@ plt.title("Bat Landing by Month")
 plt.xlabel("Count")
 plt.ylabel("Month")
 save_plot(fig, "bat_landing_by_month.png")
-
-# =======================================
-# Step 5: Chi-square test of independence
-# Between Risk vs Reward
-# =======================================
-
-contingency_table = pd.crosstab(
-    dataset1["risk"], dataset1["reward"], rownames=["risk"], colnames=["reward"]
-)
-
-print("Contingency Table:")
-print(contingency_table, "\n")
-
-# Chi-square test
-chi2, p, dof, expected = chi2_contingency(contingency_table)
-
-print("Chi-square Statistic:", chi2)
-print("Degrees of Freedom:", dof)
-print("P-value:", p)
-print("Expected Frequencies:")
-print(expected, "\n")
-
-# Success rate for each group
-success_rates = contingency_table.div(contingency_table.sum(axis=1), axis=0)
-print("Proportion of Reward within each Risk group:")
-print(success_rates)
-
-# =======================================
-# Step 6: Two sample independent t-test
-# Null Hypothesis: The mean of bat_landing_to_food is the same for avoiders and risk-takers.
-# Alternative Hypothesis: The mean of bat_landing_to_food is different between avoiders and risk-takers.
-# =======================================
-
-# Split the data into two groups
-risk0_times = dataset1[dataset1["risk"] == 0]["bat_landing_to_food"]
-risk1_times = dataset1[dataset1["risk"] == 1]["bat_landing_to_food"]
-
-# Calculate summary statistics for two samples
-x_bar_0, s0, n0 = risk0_times.mean(), risk0_times.std(), len(risk0_times)
-x_bar_1, s1, n1 = risk1_times.mean(), risk1_times.std(), len(risk1_times)
-
-
-# Two-tailed t-test from stats
-t_stat, p_val_two_tailed = ttest_ind_from_stats(
-    x_bar_1, s1, n1, x_bar_0, s0, n0, equal_var=False
-)
-
-# Convert to one-tailed (assuming H1: avoiders wait longer → mean0 > mean1)
-if t_stat < 0:
-    p_val_one_tailed = 1 - (p_val_two_tailed / 2)
-else:
-    p_val_one_tailed = p_val_two_tailed / 2
-
-print("t-statistic:", t_stat)
-print("one-tailed p-value:", p_val_one_tailed)
-print("Mean time avoiders (risk=0):", x_bar_0)
-print("Mean time risk-takers (risk=1):", x_bar_1)
 
 # ================================
 # Step 8: Dataset 2 Exploratory Analysis
@@ -433,14 +373,9 @@ save_plot(fig, "activity_by_sunset_hours.png")
 # ================================
 # Dataset 2: Correlation Analysis
 # ================================
-print("\n" + "=" * 30)
-print("CORRELATION ANALYSIS - DATASET 2")
-print("=" * 30)
 
 # Calculate correlation matrix
 correlation_matrix = dataset2[numeric_cols].corr()
-print("\nPearson Correlation Matrix:")
-print(correlation_matrix.round(4))
 
 # High-quality correlation heatmap
 fig = plt.figure(figsize=(12, 10))
@@ -460,20 +395,79 @@ plt.title("Correlation Matrix - Dataset 2\n(Upper triangle masked)", fontsize=14
 plt.tight_layout()
 save_plot(fig, "correlation_heatmap_dataset2.png")
 
-# Detailed correlation analysis with p-values
-print("\nDetailed Correlation Analysis with P-values:")
-print("-" * 60)
-for i, col1 in enumerate(numeric_cols):
-    for j, col2 in enumerate(numeric_cols):
-        if i < j:  # Only upper triangle to avoid duplicates
-            corr_coef, p_value = pearsonr(dataset2[col1], dataset2[col2])
-            spear_coef, spear_p = spearmanr(dataset2[col1], dataset2[col2])
-            print(f"{col1} vs {col2}:")
-            print(f"  Pearson r = {corr_coef:.4f}, p = {p_value:.4f}")
-            print(f"  Spearman ρ = {spear_coef:.4f}, p = {spear_p:.4f}")
-            if p_value < 0.05:
-                print(f"  *** Significant correlation (p < 0.05) ***")
-            print()
+
+# ================================
+# Dataset 1: Hypothesis testing
+# ================================
+
+# ==================================================
+# H1: Risk-taking vs risk-avoidance reward rate (two-proportion z-test)
+# ==================================================
+# Null Hypothesis (H0): Risk taking is at least as successful than risk-avoiding (p1>=p0).
+# Alternative Hypothesis (H1): Risk taking is less successful than risk-avoiding (p1<p0).
+
+risk_take = dataset1[dataset1["risk"] == 1]
+risk_avoid = dataset1[dataset1["risk"] == 0]
+
+success_take = risk_take["reward"].sum()
+success_avoid = risk_avoid["reward"].sum()
+
+n_take = len(risk_take)
+n_avoid = len(risk_avoid)
+
+p1 = success_take / n_take
+p0 = success_avoid / n_avoid
+p_pool = (success_take + success_avoid) / (n_take + n_avoid)
+
+SE = np.sqrt(p_pool * (1 - p_pool) * (1/n_take + 1/n_avoid))
+z = (p1 - p0) / SE
+
+# One-sided p-value for H1: p1 < p0
+p_value = stats.norm.cdf(z)
+
+# Independent SE for CI
+SE_ind = np.sqrt(p1*(1-p1)/n_take + p0*(1-p0)/n_avoid)
+ci_low, ci_high = (p1 - p0) - 1.96*SE_ind, (p1 - p0) + 1.96*SE_ind
+
+print("\n=== H1: Reward Rate (Risk-taking vs Avoidance) ===")
+print(f"Risk-takers success proportion (p1): {p1:.3f}")
+print(f"Risk-avoiders success proportion (p0): {p0:.3f}")
+print("z =", round(z, 4), "p-value (one-sided, p1<p0) =", round(p_value, 4))
+print("95% CI for (p1 - p0):", (round(ci_low, 4), round(ci_high, 4)))
+print("Interpretation: If CI < 0 and p < 0.05 → risk-taking has lower success, consistent with rats imposing costs.")
+
+# =======================================
+# H2:
+# Null Hypothesis: The mean of bat_landing_to_food is the same for avoiders and risk-takers.
+# Alternative Hypothesis: The mean of bat_landing_to_food is different between avoiders and risk-takers.
+# Test: Two sample independent t-test
+# =======================================
+
+# Split the data into two groups
+risk0_times = dataset1[dataset1["risk"] == 0]["bat_landing_to_food"]
+risk1_times = dataset1[dataset1["risk"] == 1]["bat_landing_to_food"]
+
+# Calculate summary statistics for two samples
+x_bar_0, s0, n0 = risk0_times.mean(), risk0_times.std(), len(risk0_times)
+x_bar_1, s1, n1 = risk1_times.mean(), risk1_times.std(), len(risk1_times)
+
+
+# Two-tailed t-test from stats
+t_stat, p_val_two_tailed = ttest_ind_from_stats(
+    x_bar_1, s1, n1, x_bar_0, s0, n0, equal_var=False
+)
+
+# Convert to one-tailed (assuming H1: avoiders wait longer → mean0 > mean1)
+if t_stat < 0:
+    p_val_one_tailed = 1 - (p_val_two_tailed / 2)
+else:
+    p_val_one_tailed = p_val_two_tailed / 2
+
+print("\n=== H2: Bat Landing Rate (Risk-taking vs Avoidance) ===")
+print("t-statistic:", t_stat)
+print("one-tailed p-value:", p_val_one_tailed)
+print("Mean time avoiders (risk=0):", x_bar_0)
+print("Mean time risk-takers (risk=1):", x_bar_1)
 
 # ================================
 # Dataset 2: T-tests
@@ -622,31 +616,3 @@ plt.ylabel("Food Availability")
 
 plt.tight_layout()
 save_plot(fig, "ttest_visualizations_dataset2.png")
-
-# ================================
-# Dataset 2: Summary Statistics by Groups
-# ================================
-print("\n" + "=" * 30)
-print("SUMMARY STATISTICS BY GROUPS")
-print("=" * 30)
-
-print("\nBat landings by food availability level:")
-food_summary = dataset2.groupby("high_food")["bat_landing_number"].agg(
-    ["count", "mean", "std", "min", "max"]
-)
-print(food_summary.round(2))
-
-print("\nBat landings by time period:")
-time_summary = dataset2.groupby("late_hour")["bat_landing_number"].agg(
-    ["count", "mean", "std", "min", "max"]
-)
-print(time_summary.round(2))
-
-print("\nFood availability by rat activity:")
-rat_summary = dataset2.groupby("high_rat_activity")["food_availability"].agg(
-    ["count", "mean", "std", "min", "max"]
-)
-print(rat_summary.round(2))
-
-print(f"\nTotal plots saved: Multiple high-quality analysis plots for Dataset 2")
-print("All plots saved in 'plots' directory with 300 DPI resolution")
