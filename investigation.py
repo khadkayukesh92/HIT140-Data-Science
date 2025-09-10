@@ -404,7 +404,8 @@ d2_numeric_cols = [
     "bat_landing_number",
     "food_availability",
     "rat_minutes",
-    "hours_after_sunset"
+    "hours_after_sunset",
+    "rat_arrival_number"
 ]
 
 # Calculate correlation matrix
