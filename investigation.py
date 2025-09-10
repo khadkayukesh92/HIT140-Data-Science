@@ -13,15 +13,11 @@ from scipy.stats import (
     ttest_ind,
 )
 
-# Set style for better plots
-plt.style.use("seaborn-v0_8")
-sns.set_palette("husl")
-
 # Create a folder to save plots
 os.makedirs("plots", exist_ok=True)
 
 # ================================
-# Step 1: Load & Inspect
+# Load Datasets
 # ================================
 base_dir = os.getcwd()
 dataset1_path = os.path.join(base_dir, "dataset1.csv")
@@ -43,7 +39,7 @@ print("=== Dataset2 Info ===")
 print(dataset2.info(), "\n")
 
 # ================================
-# Step 2: Handle Missing Values & Anomalies
+# Handle Missing Values & Anomalies
 # ================================
 print("Missing values in Dataset1:\n", dataset1.isnull().sum(), "\n")
 print("Missing values in Dataset2:\n", dataset2.isnull().sum(), "\n")
@@ -55,7 +51,7 @@ dataset2 = dataset2[
 ]
 
 # ================================
-# Step 3: Convert Data Types
+# Convert Data Types
 # ================================
 dataset1["start_time"] = pd.to_datetime(
     dataset1["start_time"], errors="coerce", dayfirst=True
@@ -76,13 +72,17 @@ dataset1["season"] = dataset1["season"].astype("category")
 dataset1["month"] = dataset1["month"].astype("category")
 
 # ================================
-# Step 4: Dataset 1 Exploratory Analysis
+# Dataset 1 Exploratory Analysis
 # ================================
 
-# Helper function to save plot
+# Function to save plot
 def save_plot(fig, filename):
     fig.savefig(os.path.join("plots", filename), bbox_inches="tight", dpi=300)
-    plt.close(fig)  # Close the figure to prevent display in notebooks or scripts
+    plt.close(fig) 
+
+# Style for plots
+plt.style.use("seaborn-v0_8")
+sns.set_palette("husl")
 
 print("\n" + "=" * 50)
 print("DATASET 1 COMPREHENSIVE ANALYSIS")
@@ -97,10 +97,10 @@ fig = plt.figure(figsize=(8, 6))
 ax = sns.countplot(x="risk", data=dataset1)
 for container in ax.containers:
     ax.bar_label(container)
-plt.title("Distribution of Bat Risk-Taking Behaviour (0 = Avoidance, 1 = Risk-Taking)")
+plt.title("Distribution of Bat Risk-Taking Behaviour (0 = Avoid, 1 = Take)")
 plt.xlabel("Risk Behaviour")
 plt.ylabel("Count")
-save_plot(fig, "bat_risk_distribution.png")
+save_plot(fig, "d1_bat_risk_distribution.png")
 
 # 2. Risk vs Reward
 fig = plt.figure(figsize=(8, 6))
@@ -111,7 +111,7 @@ plt.title("Risk vs Reward")
 plt.xlabel("Risk Behaviour (0=Avoid, 1=Risk)")
 plt.ylabel("Count")
 plt.legend(title="Reward (0=No, 1=Yes)")
-save_plot(fig, "risk_vs_reward.png")
+save_plot(fig, "d1_risk_vs_reward.png")
 
 # 3. Risk Behaviour Across Seasons
 fig = plt.figure(figsize=(10, 6))
@@ -123,7 +123,7 @@ ax.legend(title="Reward", labels=legend_labels)
 plt.title("Reward Behaviour Across Seasons")
 plt.xlabel("Season")
 plt.ylabel("Count")
-save_plot(fig, "reward_by_season.png")
+save_plot(fig, "d1_reward_by_season.png")
 
 # 4. Distribution of Bat Landings by Hours After Sunset
 fig = plt.figure(figsize=(10, 6))
@@ -131,7 +131,7 @@ sns.histplot(dataset1["hours_after_sunset"], bins=20, kde=True, color="blue")
 plt.title("Distribution of Bat Landings by Hours After Sunset")
 plt.xlabel("Hours After Sunset")
 plt.ylabel("Frequency")
-save_plot(fig, "bat_landings_hours_after_sunset.png")
+save_plot(fig, "d1_bat_landings_hours_after_sunset.png")
 
 # 5. Distribution of Bat Arrival After Rat Arrival
 fig = plt.figure(figsize=(10, 6))
@@ -139,7 +139,7 @@ sns.histplot(dataset1["seconds_after_rat_arrival"], bins=30, kde=True, color="gr
 plt.title("Distribution of Bat Arrival After Rat Arrival")
 plt.xlabel("Seconds After Rat Arrival")
 plt.ylabel("Frequency")
-save_plot(fig, "bat_arrival_after_rat.png")
+save_plot(fig, "d1_bat_arrival_after_rat.png")
 
 # 6. Distribution of Bat Landing to Food
 fig = plt.figure(figsize=(10, 6))
@@ -147,7 +147,7 @@ sns.histplot(dataset1["bat_landing_to_food"], bins=30, kde=True, color="blue")
 plt.title("Distribution of Bat Landing to Food")
 plt.xlabel("Bat Landing to Food (seconds)")
 plt.ylabel("Frequency")
-save_plot(fig, "bat_landing_to_food.png")
+save_plot(fig, "d1_bat_landing_to_food.png")
 
 # 7. Bat Landing by Month - Horizontal Bar Plot
 fig = plt.figure(figsize=(10, 8))
@@ -157,19 +157,11 @@ for container in ax.containers:
 plt.title("Bat Landing by Month")
 plt.xlabel("Count")
 plt.ylabel("Month")
-save_plot(fig, "bat_landing_by_month.png")
+save_plot(fig, "d1_bat_landing_by_month.png")
 
 # ================================
-# Step 8: Dataset 2 Exploratory Analysis
+# Dataset 2 Exploratory Analysis
 # ================================
-
-numeric_cols = [
-    "hours_after_sunset",
-    "bat_landing_number",
-    "food_availability",
-    "rat_minutes",
-    "rat_arrival_number",
-]
 
 print("\n" + "=" * 50)
 print("DATASET 2 COMPREHENSIVE ANALYSIS")
@@ -194,7 +186,7 @@ sns.boxplot(y=dataset2["bat_landing_number"], color="lightblue")
 plt.title("Boxplot of Bat Landing Numbers")
 plt.ylabel("Number of Bat Landings")
 plt.tight_layout()
-save_plot(fig, "bat_landing_distribution_dataset2.png")
+save_plot(fig, "d2_bat_landing_distribution.png")
 
 # 2. Distribution of Rat Arrival Numbers
 fig = plt.figure(figsize=(12, 6))
@@ -211,7 +203,7 @@ sns.boxplot(y=dataset2["rat_arrival_number"], color="lightsalmon")
 plt.title("Boxplot of Rat Arrival Numbers")
 plt.ylabel("Number of Rat Arrivals")
 plt.tight_layout()
-save_plot(fig, "rat_arrival_distribution_dataset2.png")
+save_plot(fig, "d2_rat_arrival_distribution.png")
 
 # 3. Hours After Sunset Distribution
 fig = plt.figure(figsize=(12, 6))
@@ -228,7 +220,7 @@ sns.boxplot(y=dataset2["hours_after_sunset"], color="plum")
 plt.title("Boxplot of Hours After Sunset")
 plt.ylabel("Hours After Sunset")
 plt.tight_layout()
-save_plot(fig, "hours_after_sunset_dataset2.png")
+save_plot(fig, "d2_hours_after_sunset.png")
 
 # 4. Food Availability Distribution
 fig = plt.figure(figsize=(12, 6))
@@ -243,7 +235,7 @@ sns.boxplot(y=dataset2["food_availability"], color="lightgreen")
 plt.title("Boxplot of Food Availability")
 plt.ylabel("Food Availability")
 plt.tight_layout()
-save_plot(fig, "food_availability_dataset2.png")
+save_plot(fig, "d2_food_availability.png")
 
 # 5. Group by month: sum bat landings and rat arrivals
 dataset2_grouped = (
@@ -277,7 +269,7 @@ plt.title("Monthly Comparison of Bat Landings and Rat Arrivals")
 plt.legend()
 plt.grid(axis="y", alpha=0.3)
 plt.tight_layout()
-save_plot(fig, "rat_bat_group_by_month.png")
+save_plot(fig, "d2_rat_bat_group_by_month.png")
 
 # 6. Time Series Analysis - Bat Landings Over Time
 fig = plt.figure(figsize=(15, 8))
@@ -302,7 +294,7 @@ plt.ylabel("Number of Bat Landings")
 plt.xticks(rotation=45)
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
-save_plot(fig, "bat_landings_timeseries.png")
+save_plot(fig, "d2_bat_landings_timeseries.png")
 
 # 8. Bat Landings vs Rat Arrivals Scatter Plot
 fig = plt.figure(figsize=(10, 8))
@@ -318,7 +310,7 @@ plt.ylabel("Bat Landing Number")
 plt.title("Relationship between Rat Arrivals and Bat Landings")
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
-save_plot(fig, "rat_vs_bat_scatter.png")
+save_plot(fig, "d2_rat_vs_bat_scatter.png")
 
 # 9. Food Availability vs Bat Landings
 fig = plt.figure(figsize=(10, 8))
@@ -334,7 +326,7 @@ plt.ylabel("Bat Landing Number")
 plt.title("Relationship between Food Availability and Bat Landings")
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
-save_plot(fig, "food_vs_bat_scatter.png")
+save_plot(fig, "d2_food_vs_bat_scatter.png")
 
 # 10. Hours After Sunset vs Activity (Both Bats and Rats)
 fig = plt.figure(figsize=(12, 8))
@@ -368,21 +360,61 @@ plt.title("Rat Activity by Hours After Sunset")
 plt.grid(True, alpha=0.3)
 plt.legend()
 plt.tight_layout()
-save_plot(fig, "activity_by_sunset_hours.png")
+save_plot(fig, "d2_activity_by_sunset_hours.png")
+
+# ================================
+# Dataset 1 Correlation Analysis
+# ================================
+
+d1_numeric_cols = [
+    "bat_landing_to_food",
+    "seconds_after_rat_arrival",
+    "risk",
+    "reward",
+    "month",
+    "hours_after_sunset",
+    "season"
+]
+
+# Calculate correlation matrix
+d1_corr_mat = dataset1[d1_numeric_cols].corr()
+
+# High-quality correlation heatmap
+fig = plt.figure(figsize=(12, 10))
+sns.heatmap(
+    d1_corr_mat,
+    annot=True,
+    cmap="RdBu_r",
+    center=0,
+    square=True,
+    linewidths=0.5,
+    cbar_kws={"shrink": 0.8},
+    fmt=".3f",
+)
+plt.title("Correlation Matrix - Dataset 1\n(Upper triangle masked)", fontsize=14)
+plt.tight_layout()
+save_plot(fig, "d1_correlation_heatmap.png")
 
 # ================================
 # Dataset 2: Correlation Analysis
 # ================================
 
+d2_numeric_cols = [
+    "month",
+    "bat_landing_number",
+    "food_availability",
+    "rat_minutes",
+    "hours_after_sunset"
+]
+
 # Calculate correlation matrix
-correlation_matrix = dataset2[numeric_cols].corr()
+d2_corr_mat = dataset2[d2_numeric_cols].corr()
 
 # High-quality correlation heatmap
 fig = plt.figure(figsize=(12, 10))
-mask = np.triu(np.ones_like(correlation_matrix, dtype=bool))
+mask = np.triu(np.ones_like(d2_corr_mat, dtype=bool))
 sns.heatmap(
-    correlation_matrix,
-    mask=mask,
+    d2_corr_mat,
     annot=True,
     cmap="RdBu_r",
     center=0,
@@ -393,18 +425,20 @@ sns.heatmap(
 )
 plt.title("Correlation Matrix - Dataset 2\n(Upper triangle masked)", fontsize=14)
 plt.tight_layout()
-save_plot(fig, "correlation_heatmap_dataset2.png")
+save_plot(fig, "d2_correlation_heatmap.png")
 
 
 # ================================
-# Dataset 1: Hypothesis testing
+# Dataset 1: Inferential Analysis
 # ================================
 
 # ==================================================
-# H1: Risk-taking vs risk-avoidance reward rate (two-proportion z-test)
+# 1: Risk-taking vs risk-avoidance reward rate (two-proportion z-test)
 # ==================================================
-# Null Hypothesis (H0): Risk taking is at least as successful than risk-avoiding (p1>=p0).
-# Alternative Hypothesis (H1): Risk taking is less successful than risk-avoiding (p1<p0).
+# Null Hypothesis (H0): Risk-taking bats are equally or more successful than risk-avoiding bats (p1 >= p0).
+# Alternative Hypothesis (H1): Risk-taking bats are less successful than risk-avoiding bats (p1 < p0).
+# Test: z-test
+# =======================================
 
 risk_take = dataset1[dataset1["risk"] == 1]
 risk_avoid = dataset1[dataset1["risk"] == 0]
@@ -417,17 +451,17 @@ n_avoid = len(risk_avoid)
 
 p1 = success_take / n_take
 p0 = success_avoid / n_avoid
-p_pool = (success_take + success_avoid) / (n_take + n_avoid)
+p = (success_take + success_avoid) / (n_take + n_avoid)
 
-SE = np.sqrt(p_pool * (1 - p_pool) * (1/n_take + 1/n_avoid))
-z = (p1 - p0) / SE
+std_err = np.sqrt(p * (1 - p) * (1/n_take + 1/n_avoid))
+z = (p1 - p0) / std_err
 
 # One-sided p-value for H1: p1 < p0
 p_value = stats.norm.cdf(z)
 
 # Independent SE for CI
-SE_ind = np.sqrt(p1*(1-p1)/n_take + p0*(1-p0)/n_avoid)
-ci_low, ci_high = (p1 - p0) - 1.96*SE_ind, (p1 - p0) + 1.96*SE_ind
+std_err_ind = np.sqrt(p1*(1-p1)/n_take + p0*(1-p0)/n_avoid)
+ci_low, ci_high = (p1 - p0) - 1.96*std_err_ind, (p1 - p0) + 1.96*std_err_ind
 
 print("\n=== H1: Reward Rate (Risk-taking vs Avoidance) ===")
 print(f"Risk-takers success proportion (p1): {p1:.3f}")
@@ -437,7 +471,8 @@ print("95% CI for (p1 - p0):", (round(ci_low, 4), round(ci_high, 4)))
 print("Interpretation: If CI < 0 and p < 0.05 → risk-taking has lower success, consistent with rats imposing costs.")
 
 # =======================================
-# H2:
+# 2: Bat Landing Delay for Risk-Takers and Risk-Avoiders
+# ==================================================
 # Null Hypothesis: The mean of bat_landing_to_food is the same for avoiders and risk-takers.
 # Alternative Hypothesis: The mean of bat_landing_to_food is different between avoiders and risk-takers.
 # Test: Two sample independent t-test
@@ -470,25 +505,26 @@ print("Mean time avoiders (risk=0):", x_bar_0)
 print("Mean time risk-takers (risk=1):", x_bar_1)
 
 # ================================
-# Dataset 2: T-tests
+# Dataset 2: Inferential Analysis
 # ================================
 print("\n" + "=" * 20)
 print("T-TEST ANALYSIS - DATASET 2")
 print("=" * 20)
 
-# Create binary variables for t-tests based on median splits
+# =======================================
+# 3: Food Availability vs Bat Landing
+# ==================================================
+
+# Encoding food availability as High Food (1) or Low Food (0)
 dataset2["high_food"] = (
     dataset2["food_availability"] > dataset2["food_availability"].median()
 ).astype(int)
-dataset2["late_hour"] = (
-    dataset2["hours_after_sunset"] > dataset2["hours_after_sunset"].median()
-).astype(int)
-dataset2["high_rat_activity"] = (dataset2["rat_arrival_number"] > 0).astype(int)
 
 print("\nT-test 1: Bat landings in high vs low food availability periods")
 high_food_bats = dataset2[dataset2["high_food"] == 1]["bat_landing_number"]
 low_food_bats = dataset2[dataset2["high_food"] == 0]["bat_landing_number"]
 
+# Perform T-test on two samples
 t_stat1, p_val1 = ttest_ind(high_food_bats, low_food_bats, equal_var=False)
 print(
     f"High food availability - Mean bat landings: {high_food_bats.mean():.2f} (SD: {high_food_bats.std():.2f}, n: {len(high_food_bats)})"
@@ -500,10 +536,20 @@ print(f"t-statistic: {t_stat1:.4f}")
 print(f"p-value: {p_val1:.4f}")
 print(f"Significant difference: {'Yes' if p_val1 < 0.05 else 'No'}")
 
+# =======================================
+# 4: Hours after Sunset vs Bat Landing
+# ==================================================
+
+# Encoding hours after sunset as Late Hour (1) or Early Hour (0)
+dataset2["late_hour"] = (
+    dataset2["hours_after_sunset"] > dataset2["hours_after_sunset"].median()
+).astype(int)
+
 print("\nT-test 2: Bat landings in early vs late hours after sunset")
 early_hour_bats = dataset2[dataset2["late_hour"] == 0]["bat_landing_number"]
 late_hour_bats = dataset2[dataset2["late_hour"] == 1]["bat_landing_number"]
 
+# Perform T-test on two samples
 t_stat2, p_val2 = ttest_ind(late_hour_bats, early_hour_bats, equal_var=False)
 print(
     f"Early hours - Mean bat landings: {early_hour_bats.mean():.2f} (SD: {early_hour_bats.std():.2f}, n: {len(early_hour_bats)})"
@@ -515,10 +561,18 @@ print(f"t-statistic: {t_stat2:.4f}")
 print(f"p-value: {p_val2:.4f}")
 print(f"Significant difference: {'Yes' if p_val2 < 0.05 else 'No'}")
 
+# =======================================
+# 3: Rat Activity (Presence) vs Bat Landing
+# ==================================================
+
+# Encoding high_rat_activity (1) if there is at least one rat.
+dataset2["high_rat_activity"] = (dataset2["rat_arrival_number"] > 0).astype(int)
+
 print("\nT-test 3: Food availability when rats are present vs absent")
 rats_present_food = dataset2[dataset2["high_rat_activity"] == 1]["food_availability"]
 rats_absent_food = dataset2[dataset2["high_rat_activity"] == 0]["food_availability"]
 
+# Perform T-test on two samples
 t_stat3, p_val3 = ttest_ind(rats_present_food, rats_absent_food, equal_var=False)
 print(
     f"Rats present - Mean food availability: {rats_present_food.mean():.2f} (SD: {rats_present_food.std():.2f}, n: {len(rats_present_food)})"
@@ -529,90 +583,3 @@ print(
 print(f"t-statistic: {t_stat3:.4f}")
 print(f"p-value: {p_val3:.4f}")
 print(f"Significant difference: {'Yes' if p_val3 < 0.05 else 'No'}")
-
-# Visualization of t-test results
-fig = plt.figure(figsize=(15, 10))
-
-# T-test 1 visualization
-plt.subplot(2, 3, 1)
-sns.boxplot(
-    x=None,
-    y="bat_landing_number",
-    hue="high_food",
-    data=dataset2,
-    palette=["lightcoral", "lightblue"],
-    legend=False,
-)
-plt.title(f"Bat Landings by Food Availability\np-value: {p_val1:.4f}")
-plt.xlabel("Food Availability (0=Low, 1=High)")
-plt.ylabel("Bat Landing Number")
-
-plt.subplot(2, 3, 2)
-sns.violinplot(
-    x=None,
-    y="bat_landing_number",
-    hue="high_food",
-    data=dataset2,
-    palette=["lightcoral", "lightblue"],
-    legend=False,
-)
-plt.title("Distribution Shape Comparison")
-plt.xlabel("Food Availability (0=Low, 1=High)")
-plt.ylabel("Bat Landing Number")
-
-# T-test 2 visualization
-plt.subplot(2, 3, 3)
-sns.boxplot(
-    x=None,
-    y="bat_landing_number",
-    hue="late_hour",
-    data=dataset2,
-    palette=["lightgreen", "gold"],
-    legend=False,
-)
-plt.title(f"Bat Landings by Time Period\np-value: {p_val2:.4f}")
-plt.xlabel("Time Period (0=Early, 1=Late)")
-plt.ylabel("Bat Landing Number")
-
-plt.subplot(2, 3, 4)
-sns.violinplot(
-    x=None,
-    y="bat_landing_number",
-    hue="late_hour",
-    data=dataset2,
-    palette=["lightgreen", "gold"],
-    legend=False,
-)
-plt.title("Distribution Shape Comparison")
-plt.xlabel("Time Period (0=Early, 1=Late)")
-plt.ylabel("Bat Landing Number")
-
-# T-test 3 visualization
-plt.subplot(2, 3, 5)
-sns.boxplot(
-    x=None,
-    y="food_availability",
-    hue="high_rat_activity",
-    data=dataset2,
-    palette=["plum", "orange"],
-    legend=False,
-)
-plt.title(f"Food Availability by Rat Presence\np-value: {p_val3:.4f}")
-plt.xlabel("Rat Activity (0=Absent, 1=Present)")
-plt.ylabel("Food Availability")
-
-plt.subplot(2, 3, 6)
-sns.violinplot(
-    x=None,
-    y="food_availability",
-    hue="high_rat_activity",
-    data=dataset2,
-    palette=["plum", "orange"],
-    legend=False,
-)
-plt.title("Distribution Shape Comparison")
-plt.xlabel("Rat Activity (0=Absent, 1=Present)")
-plt.ylabel("Food Availability")
-
-plt.tight_layout()
-save_plot(fig, "ttest_visualizations_dataset2.png")
